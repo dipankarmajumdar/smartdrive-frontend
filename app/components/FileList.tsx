@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CloudDownload, FileText, Loader2, Trash2 } from "lucide-react";
 
 type FileItem = {
@@ -19,7 +19,7 @@ const FileList = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -33,16 +33,17 @@ const FileList = () => {
 
       const data = await res.json();
       setFiles(data.files || []);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [fetchFiles]);
 
   const handleDelete = async (fileId: string, filename: string) => {
     const confirmed = window.confirm(
@@ -92,7 +93,7 @@ const FileList = () => {
   if (files.length === 0) {
     return (
       <p className="text-gray-500 dark:text-gray-400 text-center mt-6">
-        You haven't uploaded any files yet.
+        You haven&apos;t uploaded any files yet.
       </p>
     );
   }

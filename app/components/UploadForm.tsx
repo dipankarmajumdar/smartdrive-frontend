@@ -1,13 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { CheckCircle, Loader2, UploadCloud, XCircle } from "lucide-react";
 
-type UploadFormProps = {
-  onUploadSuccess: (newFile: any) => void;
+type FileType = {
+  _id: string;
+  originalname: string;
+  filename: string;
+  url: string;
+  uploadedAt: string;
 };
 
-const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
+type UploadFormProps = {
+  onUploadSuccess: (newFile: FileType) => void;
+};
+
+const UploadForm = ({ onUploadSuccess }: UploadFormProps) => {
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{
@@ -18,7 +26,7 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
-  const handleUpload = async (e: React.FormEvent) => {
+  const handleUpload = async (e: FormEvent) => {
     e.preventDefault();
     if (!fileToUpload || !token) return;
 
@@ -49,10 +57,11 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
       onUploadSuccess(result.file);
       setMessage({ type: "success", text: "✅ File uploaded successfully!" });
       setFileToUpload(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       setMessage({
         type: "error",
-        text: err?.message || "❌ Something went wrong during upload.",
+        text: error?.message || "❌ Something went wrong during upload.",
       });
     } finally {
       setUploading(false);
@@ -67,7 +76,9 @@ const UploadForm: React.FC<UploadFormProps> = ({ onUploadSuccess }) => {
       >
         <input
           type="file"
-          onChange={(e) => setFileToUpload(e.target.files?.[0] || null)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFileToUpload(e.target.files?.[0] || null)
+          }
           className="w-full sm:w-[80%] px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white bg-white dark:bg-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
